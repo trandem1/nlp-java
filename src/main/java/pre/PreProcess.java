@@ -40,7 +40,7 @@ public class PreProcess {
 			big_line += line + " ";
 		}
 		br.close();
-		System.out.println(big_line);
+//		System.out.println(big_line);
 		return big_line;
 	}
 

@@ -1,13 +1,16 @@
 package textrank;
 
-import java.awt.List;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import pre.PreProcess;
 
@@ -19,15 +22,16 @@ public class Generator {
 
 	private LinkedHashMap<String, Float> strScore;
 	private LinkedHashMap<String, String> lines;
-
-	public Generator() throws IOException {
+	private String path;
+	public Generator(String path) throws IOException {
 		// TODO Auto-generated constructor stub
 		this.strScore = new LinkedHashMap<String, Float>();
+		this.path = path;
 		insertStr();
 	}
 
 	public void insertStr() throws IOException {
-		PreProcess pre = new PreProcess("tes");
+		PreProcess pre = new PreProcess(this.path);
 		pre.main();
 		this.lines = pre.getLines();
 		for (String key : lines.keySet()) {
@@ -69,19 +73,61 @@ public class Generator {
 		}
 	}
 
-	public void print_Sum() {
-		for (String x : strScore.keySet()) {
-			for (String key : lines.keySet()) {
-				if (lines.get(key).equals(x)) {
-					System.out.println(key + "\t" + strScore.get(x));
+	// in ra % bai van
+	public void print_Sum(float percent) {
+		HashSet<Float> best_scores = sort_hashmap(this.strScore, percent);
+		for (String sentence : this.strScore.keySet()) {
+			if (best_scores.contains(this.strScore.get(sentence))) {
+				for (String old_String : lines.keySet()) {
+					if(lines.get(old_String).equals(sentence)) {
+						System.out.println(old_String + ".");
+					}
 				}
 			}
 		}
 	}
 
-	public static void main(String[] args) throws IOException {
-		Generator te = new Generator();
-		te.calcAllSentenceScores();
-		te.print_Sum();
+	/**
+	 * lay ra so luong gia tri dang gia nhat trong bai van input la 1 map chua cau
+	 * va diem cua cau input percent la phan tram vi du lay 1/2 doan van thi percent
+	 * =1/2
+	 * 
+	 */
+	public HashSet<Float> sort_hashmap(LinkedHashMap<String, Float> linkedHashMap, float percent) {
+		// LinkedHashMap<String, Float> map1 = new LinkedHashMap<>();
+		// map1 = linkedHashMap.entrySet().stream().sorted(Map.Entry.<String,
+		// Float>comparingByValue())
+		// .collect(Collectors.toMap(k -> k.getKey(), v -> v.getValue(), (k, v) -> k,
+		// LinkedHashMap::new));
+		// System.out.println(map1);
+		List<Float> score = new ArrayList<>();
+		score.addAll(linkedHashMap.values());
+		Collections.sort(score);
+		float nguong = percent * linkedHashMap.size();
+		int dem = 0;
+		HashSet<Float> result = new HashSet<>();
+		for (int i = score.size() - 1; i >= 0; i--) {
+			result.add(score.get(i));
+			dem++;
+			if (dem >= nguong) {
+				break;
+			}
+		}
+		return result;
 	}
+
+	public LinkedHashMap<String, Float> getStrScore() {
+		return strScore;
+	}
+
+	public void setStrScore(LinkedHashMap<String, Float> strScore) {
+		this.strScore = strScore;
+	}
+
+	public static void main(String[] args) throws IOException {
+		Generator te = new Generator("tes");
+		te.calcAllSentenceScores();
+		te.print_Sum(0.5F);
+	}
+
 }
